@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vimigo/services/json.services.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class ContactScreen extends StatefulWidget {
 class _ContactScreenState extends State<ContactScreen> {
   final ScrollController _scrollController = ScrollController();
   final List _displayList = [];
-  List? contacts;
+  List? _contactsList;
   int takeIndex = 10;
   SharedPreferences? prefs;
 
@@ -30,7 +31,7 @@ class _ContactScreenState extends State<ContactScreen> {
     _scrollController.addListener(() {
       if (_scrollController.offset ==
           _scrollController.position.maxScrollExtent) {
-        if (_displayList.length < contacts!.length) {
+        if (_displayList.length < _contactsList!.length) {
           loadMoreData();
         }
       }
@@ -55,8 +56,8 @@ class _ContactScreenState extends State<ContactScreen> {
             backgroundColor: Colors.black,
             elevation: 0,
           ),
-          body: contacts == null
-              ? Center(child: CircularProgressIndicator())
+          body: _contactsList == null
+              ? Center(child: CircularProgressIndicator(color: Colors.black,))
               : Column(children: [
                   Expanded(
                     child: ListView.builder(
@@ -86,7 +87,10 @@ class _ContactScreenState extends State<ContactScreen> {
                               ),
                               subtitle: Text(_displayList[index]['phone']),
                               trailing: IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Share.share(
+                                      _displayList[index].toString());
+                                },
                                 icon: const Icon(Icons.share_outlined),
                               ),
                             );
@@ -95,10 +99,10 @@ class _ContactScreenState extends State<ContactScreen> {
                               child: Padding(
                                   padding: const EdgeInsets.only(
                                       top: 10, bottom: 50),
-                                  child: index >= contacts!.length
+                                  child: index >= _contactsList!.length
                                       ? const Text(
                                           "You have reached end of the list")
-                                      : const CircularProgressIndicator()),
+                                      : const CircularProgressIndicator(color: Colors.black,)),
                             );
                           }
                         }),
@@ -112,21 +116,21 @@ class _ContactScreenState extends State<ContactScreen> {
     prefs = await SharedPreferences.getInstance();
 
     //load up json data
-    contacts = await JsonServices.loadJsonData("assets/contacts.json");
+    _contactsList = await JsonServices.loadJsonData("assets/contacts.json");
 
     //sort contact up to recent
-    contacts!.sort((a, b) {
+    _contactsList!.sort((a, b) {
       return (a['check-in'] as String).compareTo(b['check-in'] as String);
     });
 
-    _displayList.addAll(contacts!.take(10));
+    _displayList.addAll(_contactsList!.take(10));
     setState(() {});
   }
 
   loadMoreData() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {
-      _displayList.addAll(contacts!.getRange(takeIndex, takeIndex + 5));
+      _displayList.addAll(_contactsList!.getRange(takeIndex, takeIndex + 5));
       takeIndex += 5;
     });
   }
