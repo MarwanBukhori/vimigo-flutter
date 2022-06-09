@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vimigo/services/json.services.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({Key? key}) : super(key: key);
@@ -14,6 +17,7 @@ class _ContactScreenState extends State<ContactScreen> {
   final List _displayList = [];
   List? contacts;
   int takeIndex = 10;
+  SharedPreferences? prefs;
 
   @override
   void initState() {
@@ -22,7 +26,7 @@ class _ContactScreenState extends State<ContactScreen> {
     //retrieve json
     setting();
 
-    // scroll listview
+    // scrolling listview to load more data
     _scrollController.addListener(() {
       if (_scrollController.offset ==
           _scrollController.position.maxScrollExtent) {
@@ -73,13 +77,16 @@ class _ContactScreenState extends State<ContactScreen> {
                                     ),
                                   ),
                                   const Spacer(),
+                                  Text(
+                                    setTime(_displayList[index]['check-in']),
+                                    style: const TextStyle(
+                                        color: Colors.black38, fontSize: 14),
+                                  ),
                                 ],
                               ),
-                              subtitle:
-                              Text(_displayList[index]['phone']),
+                              subtitle: Text(_displayList[index]['phone']),
                               trailing: IconButton(
-                                onPressed: () {
-                                },
+                                onPressed: () {},
                                 icon: const Icon(Icons.share_outlined),
                               ),
                             );
@@ -101,8 +108,16 @@ class _ContactScreenState extends State<ContactScreen> {
   }
 
   setting() async {
+    //declare sharedpreferences
+    prefs = await SharedPreferences.getInstance();
+
     //load up json data
     contacts = await JsonServices.loadJsonData("assets/contacts.json");
+
+    //sort contact up to recent
+    contacts!.sort((a, b) {
+      return (a['check-in'] as String).compareTo(b['check-in'] as String);
+    });
 
     _displayList.addAll(contacts!.take(10));
     setState(() {});
@@ -114,5 +129,13 @@ class _ContactScreenState extends State<ContactScreen> {
       _displayList.addAll(contacts!.getRange(takeIndex, takeIndex + 5));
       takeIndex += 5;
     });
+  }
+
+  setTime(String time) {
+    DateTime dateTime = DateTime.parse(time);
+    if (prefs!.getBool('normalTime') != null && prefs!.getBool('normalTime')!) {
+      return DateFormat.yMd().format(dateTime);
+    }
+    return timeago.format(dateTime);
   }
 }
