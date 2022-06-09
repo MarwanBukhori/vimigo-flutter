@@ -55,9 +55,27 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
             backgroundColor: Colors.black,
             elevation: 0,
+            actions: [
+              IconButton(
+                  onPressed: (() => setState(() {
+                        if (prefs!.getBool('normalTime') == null) {
+                          prefs!.setBool('normalTime', true);
+                        } else {
+                          prefs!.setBool(
+                              'normalTime', !prefs!.getBool('normalTime')!);
+                        }
+                      })),
+                  icon: const Icon(
+                    Icons.timeline,
+                    color: Colors.white,
+                  ))
+            ],
           ),
           body: _contactsList == null
-              ? Center(child: CircularProgressIndicator(color: Colors.black,))
+              ? Center(
+                  child: CircularProgressIndicator(
+                  color: Colors.black,
+                ))
               : Column(children: [
                   Expanded(
                     child: ListView.builder(
@@ -88,8 +106,7 @@ class _ContactScreenState extends State<ContactScreen> {
                               subtitle: Text(_displayList[index]['phone']),
                               trailing: IconButton(
                                 onPressed: () {
-                                  Share.share(
-                                      _displayList[index].toString());
+                                  Share.share(_displayList[index].toString());
                                 },
                                 icon: const Icon(Icons.share_outlined),
                               ),
@@ -102,7 +119,9 @@ class _ContactScreenState extends State<ContactScreen> {
                                   child: index >= _contactsList!.length
                                       ? const Text(
                                           "You have reached end of the list")
-                                      : const CircularProgressIndicator(color: Colors.black,)),
+                                      : const CircularProgressIndicator(
+                                          color: Colors.black,
+                                        )),
                             );
                           }
                         }),
