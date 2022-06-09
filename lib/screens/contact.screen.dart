@@ -13,6 +13,7 @@ class _ContactScreenState extends State<ContactScreen> {
   final ScrollController _scrollController = ScrollController();
   final List _displayList = [];
   List? contacts;
+  int takeIndex = 10;
 
   @override
   void initState() {
@@ -20,6 +21,16 @@ class _ContactScreenState extends State<ContactScreen> {
 
     //retrieve json
     setting();
+
+    // scroll listview
+    _scrollController.addListener(() {
+      if (_scrollController.offset ==
+          _scrollController.position.maxScrollExtent) {
+        if (_displayList.length < contacts!.length) {
+          loadMoreData();
+        }
+      }
+    });
   }
 
   @override
@@ -95,5 +106,13 @@ class _ContactScreenState extends State<ContactScreen> {
 
     _displayList.addAll(contacts!.take(10));
     setState(() {});
+  }
+
+  loadMoreData() async {
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      _displayList.addAll(contacts!.getRange(takeIndex, takeIndex + 5));
+      takeIndex += 5;
+    });
   }
 }
