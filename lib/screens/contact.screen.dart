@@ -138,8 +138,8 @@ class _ContactScreenState extends State<ContactScreen> {
     _contactsList = await JsonServices.loadJsonData("assets/contacts.json");
 
     //sort contact up to recent
-    _contactsList!.sort((a, b) {
-      return (a['check-in'] as String).compareTo(b['check-in'] as String);
+    _contactsList!.sort((b, a) {
+      return (a['check-in'] ).compareTo(b['check-in'] );
     });
 
     _displayList.addAll(_contactsList!.take(10));
